@@ -7,6 +7,11 @@
         <Style TargetType="Label">
             <Setter Property="FontSize" Value="24"/>
         </Style>
+
+        <ResourceDictionary x:Name="MyDictionary">
+            <Color x:Key="BusyColor">Red</Color>
+            <Color x:Key="ReadyColor">LightGreen</Color>
+        </ResourceDictionary>
     </ContentPage.Resources>
     
     <VerticalStackLayout VerticalOptions="Center" 
@@ -36,10 +41,23 @@
 
         <HorizontalStackLayout Margin="50" Spacing="40"
                                HorizontalOptions="Center">
-            <Button Text="Record" Clicked="RecordButton_Clicked"/>
-            <Button Text="Play" Clicked="PlayButton_Clicked"/>
+            <Button x:Name="RecordButton" Text="Record" Clicked="RecordButton_Clicked"/>
+            <Button x:Name="PlayButton" Text="Play" Clicked="PlayButton_Clicked"/>
         </HorizontalStackLayout>
 
+        <HorizontalStackLayout HorizontalOptions="Center"
+                               Spacing="30">
+            
+        <Rectangle  x:Name="BusyIndicator"
+                    Stroke="Black" StrokeThickness="2"
+                    BackgroundColor="{StaticResource ReadyColor}" 
+                    WidthRequest="40" HeightRequest="40"
+                    IsVisible="True"/>
+
+            <ProgressBar x:Name="MyProgress" WidthRequest="200" HeightRequest="20"/>
+
+        </HorizontalStackLayout>
+        
     </VerticalStackLayout>
 
 </ContentPage>
