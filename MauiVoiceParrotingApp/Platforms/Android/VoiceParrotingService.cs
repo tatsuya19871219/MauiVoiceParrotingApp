@@ -1,13 +1,4 @@
 ﻿using Android.Media;
-using Android.Renderscripts;
-using Android.Speech;
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Security;
-//using System.Text;
-//using System.Threading.Tasks;
-//using Xamarin.Google.Crypto.Tink;
 
 namespace MauiVoiceParrotingApp.Services;
 
@@ -18,13 +9,24 @@ public partial class VoiceParrotingService
     AudioRecord _audioRecord;
     AudioTrack _audioTrack;
 
-    
+    int _recPosition; // in bytes
+    int _playPosition; // in bytes
 
-    //byte[] buffer = new byte[s_minBuffSizeInByte]; 
+    byte[] _sharedBuffer = new byte[s_sharedBufferSize];
 
-    //static int s_sharedBufferSize = s_minBuffSizeInByte * s_recTime * s_samplingFrame;
+    static int s_frames = 10; // [1/sec]
+    readonly int _miniBuffSizeInByte = s_sharedBufferSize / s_recTime / s_frames;
 
-    byte[] _sharedBuffer = new byte[s_sharedBufferSize]; // buffer for s_recTime
+    public partial double GetRecorderProgress()
+    {
+        return (double)_recPosition / s_sharedBufferSize;
+    }
+
+    public partial double GetTrackerProgress()
+    {
+        return (double)_playPosition / s_sharedBufferSize;
+    }
+
 
     partial void PrepareAudioRecorder()
     {
@@ -33,7 +35,7 @@ public partial class VoiceParrotingService
                                         s_samplingFreq,
                                         ChannelIn.Mono,
                                         Android.Media.Encoding.Pcm16bit,
-                                        s_minBuffSizeInByte);
+                                        _miniBuffSizeInByte);
 
         //_audioRecord.SetPositionNotificationPeriod(1); // # of frames
 
@@ -47,7 +49,7 @@ public partial class VoiceParrotingService
                                         s_samplingFreq,
                                         ChannelOut.Mono,
                                         Encoding.Pcm16bit,
-                                        s_minBuffSizeInByte,
+                                        _miniBuffSizeInByte,
                                         AudioTrackMode.Stream);
 
         //AudioAttributes attr = new AudioAttributes.Builder()
@@ -61,25 +63,9 @@ public partial class VoiceParrotingService
         //_audioTrack.SetPlaybackPositionUpdateListener(new MyTrackerUpdatePositionListener(ref _sharedBuffer));
     }
 
-    public partial void SetDelayTime(double delay) => _delay = delay;
+    //public partial void SetDelayTime(double delay) => _delay = delay;
 
-    async public partial Task Invoke()
-    {
-        int milli = (int)(_delay * 1000);
-
-        //Task taskRecorder = RecorderInvoke();
-        Task.Run(RecorderInvoke);
-
-        await Task.Delay(milli);
-
-        //Task taskTracker = TrackerInvoke();
-        await Task.Run(TrackerInvoke);
-
-        //await Task.WhenAll(taskRecorder, taskTracker);
-
-    }
-
-    async public partial Task RecorderInvoke()
+    async public partial Task RecorderStart()
     {
         //lock(_sharedBufferLock)
         //{
@@ -91,59 +77,76 @@ public partial class VoiceParrotingService
         var timerTask =  Task.Delay(s_recTime * 1000);
 
         int location = 0;
+        _recPosition = 0;
 
-        byte[] buffer = new byte[s_minBuffSizeInByte];
+        byte[] buffer = new byte[_miniBuffSizeInByte];
 
-        int maxLocation = s_sharedBufferSize / s_minBuffSizeInByte;
+        int maxLocation = s_sharedBufferSize / _miniBuffSizeInByte;
 
         while (true)
         {
 
-            int result = await _audioRecord.ReadAsync(buffer, 0, s_minBuffSizeInByte);
+            int result = await _audioRecord.ReadAsync(buffer, 0, _miniBuffSizeInByte);
 
             lock(_sharedBufferLock)
             {
-                Buffer.BlockCopy(buffer, 0, _sharedBuffer, location * s_minBuffSizeInByte, s_minBuffSizeInByte);
+                Buffer.BlockCopy(buffer, 0, _sharedBuffer, location * _miniBuffSizeInByte, _miniBuffSizeInByte);
             }
             location++;
 
+            _recPosition = location * _miniBuffSizeInByte;
+            
             if (location >= maxLocation) break;
             if (timerTask.IsCompletedSuccessfully) break;
         }
 
-        _audioRecord.Stop();
+        //_audioRecord.Stop();
     }
 
 
-    public async partial Task TrackerInvoke()
+    public async partial Task TrackerStart()
     {
         _audioTrack.Play();
 
         var timerTask = Task.Delay(s_recTime * 1000);
 
         int location = 0;
+        _playPosition = 0;
 
-        byte[] buffer = new byte[s_minBuffSizeInByte];
+        byte[] buffer = new byte[_miniBuffSizeInByte];
 
-        int maxLocation = s_sharedBufferSize / s_minBuffSizeInByte;
+        int maxLocation = s_sharedBufferSize / _miniBuffSizeInByte;
 
         while (true)
         {
             lock(_sharedBufferLock)
             {
-                Buffer.BlockCopy(_sharedBuffer, location * s_minBuffSizeInByte, buffer, 0, s_minBuffSizeInByte);
+                Buffer.BlockCopy(_sharedBuffer, location * _miniBuffSizeInByte, buffer, 0, _miniBuffSizeInByte);
             }
 
-            int result = await _audioTrack.WriteAsync(buffer, 0, s_minBuffSizeInByte);
+            int result = await _audioTrack.WriteAsync(buffer, 0, _miniBuffSizeInByte);
 
             location++;
+
+            _playPosition = location * _miniBuffSizeInByte;
 
             if (location >= maxLocation) break;
             if (timerTask.IsCompletedSuccessfully) break;
         }
 
+        //_audioTrack.Stop();
+    }
+
+
+    partial void RecorderFinalize()
+    {
+        _audioRecord.Stop();
+    }
+    partial void TrackerFinalize()
+    {
         _audioTrack.Stop();
     }
+
 
     //
     //class MyRecorderUpdatePositionListener : Java.Lang.Object, AudioRecord.IOnRecordPositionUpdateListener
@@ -167,10 +170,10 @@ public partial class VoiceParrotingService
     //        byte[] buffer = new byte[recorder.BufferSizeInFrames];
 
     //        recorder.Read(buffer, 0, buffer.Length);
-            
+
     //        Buffer.BlockCopy(buffer, 0, _sharedBuffer, 
     //                        recorder.NotificationMarkerPosition * recorder.BufferSizeInFrames, 
-    //                        s_minBuffSizeInByte);
+    //                        _miniBuffSizeInByte);
 
     //        //throw new NotImplementedException();
     //    }

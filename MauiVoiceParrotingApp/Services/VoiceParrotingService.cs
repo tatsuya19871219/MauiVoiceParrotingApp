@@ -1,40 +1,68 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MauiVoiceParrotingApp.Services;
+﻿namespace MauiVoiceParrotingApp.Services;
 
 public partial class VoiceParrotingService
 {
+    public bool IsRunning { get; private set; } = false;
 
     public static int s_samplingFreq = 44100; // [1/sec]
 
-    //static int s_samplingFrame = 10;
-
-    static int s_minBuffSizeInByte = 2 * s_samplingFreq; // 16bit = 2 * 8bit(1byte)
-
     public static int s_recTime = 10; // [sec]
 
-    static int s_sharedBufferSize = s_minBuffSizeInByte * s_recTime;
+    static int s_sharedBufferSize = 2 * s_samplingFreq * s_recTime; // 16bit = 2 * 8bit(1byte)
 
     double _delay = 0;
 
+    public double Delay => _delay;
+
+    public partial double GetRecorderProgress();
+    public partial double GetTrackerProgress();
+
+    public bool IsRecorderRunning { get; private set; } = false;
+    public bool IsTrackerRunning { get; private set; } = false;
+
     public VoiceParrotingService(double delay = 1) 
     {
+        SetDelayTime(delay);
+
         PrepareAudioRecorder();
         PrepareAudioTracker();
     }
 
+    public void SetDelayTime(double delay) => _delay = delay;
     partial void PrepareAudioRecorder();
     partial void PrepareAudioTracker();
 
-    public partial Task Invoke();
+    public async Task Invoke()
+    {
+        IsRunning = true;
 
-    public partial void SetDelayTime(double delay);
+        int delayInMilli = (int)(_delay * 1000);
 
-    public partial Task RecorderInvoke();
-    public partial Task TrackerInvoke();
+        IsRecorderRunning = true;
+        RecorderStart();
+
+        await Task.Delay(delayInMilli);
+
+        IsTrackerRunning =true;
+        await TrackerStart();
+
+        Break();
+    }
+
+    public partial Task RecorderStart();
+    public partial Task TrackerStart();
+
+    public void Break()
+    {
+        RecorderFinalize();
+        TrackerFinalize();
+
+        IsRunning = false;
+        IsRecorderRunning = false;
+        IsTrackerRunning = false;
+    }
+
+    partial void RecorderFinalize();
+    partial void TrackerFinalize();
 
 }

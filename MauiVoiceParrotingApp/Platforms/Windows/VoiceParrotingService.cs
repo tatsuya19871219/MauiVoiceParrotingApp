@@ -11,46 +11,54 @@ public partial class VoiceParrotingService
 {
     private readonly object _sharedBufferLock = new object();
 
-    IWaveIn _captureDevice;
+    private MMDeviceEnumerator _deviceEnum => new MMDeviceEnumerator();
+    private List<MMDevice> _recorderDevices => _deviceEnum.EnumerateAudioEndPoints(DataFlow.Capture, DeviceState.Active).ToList();
+    private List<MMDevice> _playerDevices => _deviceEnum.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active).ToList();
+
+    public List<string> RecorderList => _recorderDevices.Select(d => d.ToString()).ToList();
+    public List<string> PlayerList => _playerDevices.Select(d => d.ToString()).ToList();
+
+    public void ChangeRecorderDevice(int idx_selected) => PrepareAudioRecorder(idx_selected);
+    public void ChangePlayerDevice(int idx_selected) => PrepareAudioTracker(idx_selected);
+
+    IWaveIn _capture;
     IWavePlayer _player;
 
 
-    int _recCounter = 0;
-
-    //byte[] buffer = new byte[s_minBuffSizeInByte]; 
-    
-    //static int s_sharedBufferSize = s_minBuffSizeInByte * s_recTime * s_samplingFrame;
+    int _recLocation = 0;
+    //int _recCounter = 0;
+    int _playLocation = 0;
 
     byte[] _sharedBuffer = new byte[s_sharedBufferSize]; // buffer for s_recTime
-    //byte[] _sharedBuffer = new byte[s_minBuffSizeInByte * s_recTime * s_samplingFrame]; // buffer for s_recTime
 
-    BufferedWaveProvider _bufferedWaveProvider;
+    BufferedWaveProvider _bufferedWaveProvider; // shared buffer
 
-    partial void PrepareAudioRecorder()
+
+    public partial double GetRecorderProgress()
     {
-        //var devices = Enumerable.Range(-1, WaveIn.DeviceCount + 1).Select(n => WaveIn.GetCapabilities(n)).ToArray();
-
-        //// for test
-        int idx_selected = 1;
-
-        //_captureDevice = new WaveInEvent { DeviceNumber = idx_selected };
-
-
-        // Input device 
-        var deviceEnum = new MMDeviceEnumerator();
-        var devices = deviceEnum.EnumerateAudioEndPoints(DataFlow.Capture, DeviceState.Active).ToList();
-
-        // for test
-        _captureDevice = new WasapiCapture(devices[idx_selected]);
-
-
-        _captureDevice.DataAvailable += _captureDevice_DataAvailable;
-
-        //_captureDevice.WaveFormat = new WaveFormat(s_samplingFreq, WaveIn.GetCapabilities(idx_selected).Channels); 
-        _captureDevice.WaveFormat = new WaveFormat(s_samplingFreq, 1);
+        return (double)_recLocation / s_sharedBufferSize;
     }
 
-    int _recLocation = 0;
+    public partial double GetTrackerProgress()
+    {
+        //return (_player as WaveOut).GetPosition() / s_sharedBufferSize;
+        return (double)_playLocation / s_sharedBufferSize;
+    }
+
+    partial void PrepareAudioRecorder() => PrepareAudioRecorder(0);
+    void PrepareAudioRecorder(int idx_selected)
+    {
+        _capture = new WasapiCapture(_recorderDevices[idx_selected]);
+
+
+        _capture.DataAvailable += _captureDevice_DataAvailable;
+
+        //_capture.WaveFormat = new WaveFormat(s_samplingFreq, WaveIn.GetCapabilities(idx_selected).Channels); 
+        _capture.WaveFormat = new WaveFormat(s_samplingFreq, 1);
+    }
+
+    
+
 
     private void _captureDevice_DataAvailable(object sender, WaveInEventArgs e)
     {
@@ -77,18 +85,16 @@ public partial class VoiceParrotingService
         }
 
         _recLocation += bytesRecorded;
-        //if (_recCounter >= maxLocation) _captureDevice.StopRecording();
-        if (_recLocation >= s_sharedBufferSize) _captureDevice.StopRecording();
+        //if (_recCounter >= maxLocation) _capture.StopRecording();
+        if (_recLocation >= s_sharedBufferSize) _capture.StopRecording();
     }
 
-    partial void PrepareAudioTracker()
+
+    partial void PrepareAudioTracker() => PrepareAudioTracker(0);
+    void PrepareAudioTracker(int idx_selected)
     {
 
-        // Output device
-        var deviceEnum = new MMDeviceEnumerator();
-        var devices = deviceEnum.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active).ToList();
-
-        _player = new WasapiOut(devices[1], AudioClientShareMode.Shared, false, 0);
+        _player = new WasapiOut(_playerDevices[idx_selected], AudioClientShareMode.Shared, false, 0);
         //_player = new WaveOutEvent();
 
         //IWaveProvider provider = new RawSourceWaveStream(
@@ -104,107 +110,93 @@ public partial class VoiceParrotingService
 
     }
 
-    public partial void SetDelayTime(double delay) => _delay = delay;
 
-    async public partial Task Invoke()
-    {
-        _bufferedWaveProvider.ClearBuffer();
-
-        int milli = (int)(_delay * 1000);
-
-        //Task taskRecorder = RecorderInvoke();
-        RecorderInvoke();
-
-        await Task.Delay(milli);
-
-        //Task taskTracker = TrackerInvoke();
-        await TrackerInvoke();
-
-        //await Task.WhenAll(taskRecorder, taskTracker);
-
-    }
-
-    async public partial Task RecorderInvoke()
+    async public partial Task RecorderStart()
     {
 
         //_recCounter = 0;
         _recLocation = 0;
 
-        _captureDevice.StartRecording();
-
+        _capture.StartRecording();
 
         await Task.Delay(s_recTime * 1000);
 
-
-        _captureDevice.StopRecording();
+        //_capture.StopRecording();
     }
 
-    public async partial Task TrackerInvoke()
+    public async partial Task TrackerStart()
     {
-        //IWaveProvider provider = new RawSourceWaveStream(
-        //                        new MemoryStream(_sharedBuffer), new WaveFormat(s_samplingFreq, 16, 1));
 
-        //int k = WaveOut.GetCapabilities(1).Channels;
-
-        //_player.Init(provider);
-        //_player.Init(_bufferedWaveProvider);
-        //PrepareAudioTracker();
-
-        // already played
-        //if (_bufferedWaveProvider.BufferedDuration == TimeSpan.Zero)
-        //{
-        //    _bufferedWaveProvider.AddSamples(_sharedBuffer, 0, s_sharedBufferSize);
-        //}
-
-        //RunTracker();
-
-        //lock (_sharedBufferLock)
-        //{
         _player.Play();
-        //}
 
-        await Task.Delay(s_recTime * 1000);
+        Task t = Task.Delay(s_recTime * 1000);
 
-        //while(_player.PlaybackState == PlaybackState.Playing)
-        //{
-        //    await Task.Delay(500);
-        //}
+        Stopwatch stopwatch= Stopwatch.StartNew();
 
+        while (true)
+        {
+            double ratio = (double)stopwatch.Elapsed.TotalSeconds / s_recTime;
+
+            _playLocation =  (int)(s_sharedBufferSize * ratio);
+
+            if(t.IsCompleted) break;
+
+            await Task.Delay(100);
+        }
+
+        stopwatch.Stop();
+        
+    }
+
+    partial void RecorderFinalize()
+    {
+        _capture.StopRecording();
+    }
+
+    partial void TrackerFinalize()
+    {
         _player.Stop();
 
         _bufferedWaveProvider.ClearBuffer();
 
-        //_player.Dispose();
-
         // restore
-        if (_bufferedWaveProvider.BufferedDuration == TimeSpan.Zero)
-        {
-            _bufferedWaveProvider.AddSamples(_sharedBuffer, 0, s_sharedBufferSize);
-        }
+        //if (_bufferedWaveProvider.BufferedDuration == TimeSpan.Zero)
+        //{
+        //    _bufferedWaveProvider.AddSamples(_sharedBuffer, 0, s_sharedBufferSize);
+        //}
     }
 
+    //public partial void Break()
+    //{
+    //    _capture.StopRecording();
+    //    _player.Stop();
+
+    //    _bufferedWaveProvider.ClearBuffer();
+
+    //    IsRunning = false;
+    //}
 
     /// <summary>
     /// To avoid bufferedWaveProvider reaches full,
     /// add samples dynamically.
     /// </summary>
-    async void RunTracker()
-    {
-        int location = 0;
-        int maxLocation = s_sharedBufferSize / s_minBuffSizeInByte;
+    //async void RunTracker()
+    //{
+    //    int location = 0;
+    //    int maxLocation = s_sharedBufferSize / s_minBuffSizeInByte;
 
-        while (true)
-        {
+    //    while (true)
+    //    {
 
-            lock(_sharedBufferLock)
-            {
-                _bufferedWaveProvider.AddSamples(_sharedBuffer, location * s_minBuffSizeInByte, s_minBuffSizeInByte);
-            }
+    //        lock(_sharedBufferLock)
+    //        {
+    //            _bufferedWaveProvider.AddSamples(_sharedBuffer, location * s_minBuffSizeInByte, s_minBuffSizeInByte);
+    //        }
 
-            location++;
-            if (location >= maxLocation) break;
-            
-        }
+    //        location++;
+    //        if (location >= maxLocation) break;
 
-    }
+    //    }
+
+    //}
 }

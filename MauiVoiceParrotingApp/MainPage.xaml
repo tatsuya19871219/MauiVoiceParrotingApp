@@ -2,8 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiVoiceParrotingApp.MainPage"
-             xmlns:local="clr-namespace:MauiVoiceParrotingApp"
-             NavigationPage.HasNavigationBar="False">
+             xmlns:converter="clr-namespace:MauiVoiceParrotingApp.Converters">
 
     <ContentPage.Resources>
         <Style TargetType="Label">
@@ -14,6 +13,10 @@
             <Color x:Key="BusyColor">Red</Color>
             <Color x:Key="ReadyColor">Gray</Color>
         </ResourceDictionary>
+
+        <converter:BusyStateToIndicatorColorConverter x:Key="stateToColor" 
+                                                      BusyColor="{StaticResource BusyColor}"
+                                                      ReadyColor="{StaticResource ReadyColor}"/>
     </ContentPage.Resources>
     
     <VerticalStackLayout VerticalOptions="Center" 
@@ -23,7 +26,8 @@
         <Button x:Name="StartButton" 
                 Text="Start"
                 FontSize="45"
-                Clicked="StartButton_Clicked"/>
+                Clicked="StartButton_Clicked"
+                IsEnabled="{Binding IsAvailable}"/>
 
         <HorizontalStackLayout VerticalOptions="Center" Spacing="30">
             
@@ -47,46 +51,44 @@
             <Button x:Name="PlayButton" Text="Play" Clicked="PlayButton_Clicked"/>
         </HorizontalStackLayout>-->
 
-        <Switch x:Name="TestSwitch"/>
+        <!--<Switch x:Name="TestSwitch"/>-->
 
         <Grid x:Name="Indicators" 
                       HorizontalOptions="Center"
                       RowDefinitions="*, *" ColumnDefinitions="*, Auto"
                       RowSpacing="10" ColumnSpacing="20">
 
-            <Label Text="REC"
+            <Label Text="REC" TextColor="{Binding IsRecBusy, 
+                                                    Converter={StaticResource stateToColor}}"
                    VerticalTextAlignment="Center"
-                   Grid.Column="0" Grid.Row="0">
-
-                <Label.TextColor>
-                    <Binding Source="{x:Reference TestSwitch}" Path="IsToggled">
-                        <Binding.Converter>
-                            <local:BusyStateToIndicatorColorConverter BusyColor="{StaticResource BusyColor}"
-                                                                      ReadyColor="{StaticResource ReadyColor}"/>
-                        </Binding.Converter>
-                    </Binding>
-                </Label.TextColor>
-            </Label>
+                   Grid.Column="0" Grid.Row="0"/>
 
             <ProgressBar x:Name="MyRecProgress" WidthRequest="200" HeightRequest="20"
+                         ProgressColor="Red"
+                         Progress="{Binding RecPosition}"
                          Grid.Column="1" Grid.Row="0"/>
 
 
-            <Label Text="PLAY" TextColor="{StaticResource ReadyColor}"
+            <Label Text="PLAY" TextColor="{Binding IsPlayBusy, 
+                                                    Converter={StaticResource stateToColor}}"
                    VerticalTextAlignment="Center"
                    Grid.Column="0" Grid.Row="1"/>
 
             <ProgressBar x:Name="MyPlayProgress" WidthRequest="200" HeightRequest="20"
+                         ProgressColor="Green"
+                         Progress="{Binding PlayPosition}"
                          Grid.Column="1" Grid.Row="1"/>
 
         </Grid>
 
-        <Button Text="Cancel"/>
+        <Button Text="Cancel" Clicked="CancelButton_Clicked"
+                IsEnabled="{Binding IsRunning}"/>
 
-        <VerticalStackLayout>
+        <VerticalStackLayout IsVisible="{OnPlatform True, Android=False}">
             <VerticalStackLayout.Resources>
                 <Style TargetType="Label">
                     <Setter Property="FontSize" Value="16"/>
+                    <Setter Property="VerticalTextAlignment" Value="Center"/>
                 </Style>
             </VerticalStackLayout.Resources>
             
@@ -101,11 +103,13 @@
             <Label Text="Mic"
                    Grid.Column="0" Grid.Row="0"/>
             <Picker x:Name="RecorderPicker"
+                    IsEnabled="{Binding IsAvailable}"
                     Grid.Column="1" Grid.Row="0"/>
 
             <Label Text="Speaker"
                    Grid.Column="0" Grid.Row="1"/>
             <Picker x:Name="PlayerPicker"
+                    IsEnabled="{Binding IsAvailable}"
                     Grid.Column="1" Grid.Row="1"/>
 
         </Grid>
