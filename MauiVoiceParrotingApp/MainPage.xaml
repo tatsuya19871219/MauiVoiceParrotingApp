@@ -1,7 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MauiVoiceParrotingApp.MainPage">
+             x:Class="MauiVoiceParrotingApp.MainPage"
+             xmlns:local="clr-namespace:MauiVoiceParrotingApp"
+             NavigationPage.HasNavigationBar="False">
 
     <ContentPage.Resources>
         <Style TargetType="Label">
@@ -10,7 +12,7 @@
 
         <ResourceDictionary x:Name="MyDictionary">
             <Color x:Key="BusyColor">Red</Color>
-            <Color x:Key="ReadyColor">LightGreen</Color>
+            <Color x:Key="ReadyColor">Gray</Color>
         </ResourceDictionary>
     </ContentPage.Resources>
     
@@ -39,24 +41,76 @@
         </HorizontalStackLayout>
 
 
-        <HorizontalStackLayout Margin="50" Spacing="40"
+        <!--<HorizontalStackLayout Margin="50" Spacing="40"
                                HorizontalOptions="Center">
             <Button x:Name="RecordButton" Text="Record" Clicked="RecordButton_Clicked"/>
             <Button x:Name="PlayButton" Text="Play" Clicked="PlayButton_Clicked"/>
-        </HorizontalStackLayout>
+        </HorizontalStackLayout>-->
 
-        <HorizontalStackLayout HorizontalOptions="Center"
-                               Spacing="30">
+        <Switch x:Name="TestSwitch"/>
+
+        <Grid x:Name="Indicators" 
+                      HorizontalOptions="Center"
+                      RowDefinitions="*, *" ColumnDefinitions="*, Auto"
+                      RowSpacing="10" ColumnSpacing="20">
+
+            <Label Text="REC"
+                   VerticalTextAlignment="Center"
+                   Grid.Column="0" Grid.Row="0">
+
+                <Label.TextColor>
+                    <Binding Source="{x:Reference TestSwitch}" Path="IsToggled">
+                        <Binding.Converter>
+                            <local:BusyStateToIndicatorColorConverter BusyColor="{StaticResource BusyColor}"
+                                                                      ReadyColor="{StaticResource ReadyColor}"/>
+                        </Binding.Converter>
+                    </Binding>
+                </Label.TextColor>
+            </Label>
+
+            <ProgressBar x:Name="MyRecProgress" WidthRequest="200" HeightRequest="20"
+                         Grid.Column="1" Grid.Row="0"/>
+
+
+            <Label Text="PLAY" TextColor="{StaticResource ReadyColor}"
+                   VerticalTextAlignment="Center"
+                   Grid.Column="0" Grid.Row="1"/>
+
+            <ProgressBar x:Name="MyPlayProgress" WidthRequest="200" HeightRequest="20"
+                         Grid.Column="1" Grid.Row="1"/>
+
+        </Grid>
+
+        <Button Text="Cancel"/>
+
+        <VerticalStackLayout>
+            <VerticalStackLayout.Resources>
+                <Style TargetType="Label">
+                    <Setter Property="FontSize" Value="16"/>
+                </Style>
+            </VerticalStackLayout.Resources>
             
-        <Rectangle  x:Name="BusyIndicator"
-                    Stroke="Black" StrokeThickness="2"
-                    BackgroundColor="{StaticResource ReadyColor}" 
-                    WidthRequest="40" HeightRequest="40"
-                    IsVisible="True"/>
+        <Label Text="Device selected" Margin="10"
+               HorizontalOptions="Center"/>
 
-            <ProgressBar x:Name="MyProgress" WidthRequest="200" HeightRequest="20"/>
+        <Grid Margin="0"
+              HorizontalOptions="Center"
+              RowDefinitions="*, *" ColumnDefinitions="*, Auto"
+              RowSpacing="10" ColumnSpacing="20">
 
-        </HorizontalStackLayout>
+            <Label Text="Mic"
+                   Grid.Column="0" Grid.Row="0"/>
+            <Picker x:Name="RecorderPicker"
+                    Grid.Column="1" Grid.Row="0"/>
+
+            <Label Text="Speaker"
+                   Grid.Column="0" Grid.Row="1"/>
+            <Picker x:Name="PlayerPicker"
+                    Grid.Column="1" Grid.Row="1"/>
+
+        </Grid>
+
+        </VerticalStackLayout>
         
     </VerticalStackLayout>
 

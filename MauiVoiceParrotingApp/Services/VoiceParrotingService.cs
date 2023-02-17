@@ -11,13 +11,13 @@ public partial class VoiceParrotingService
 
     public static int s_samplingFreq = 44100; // [1/sec]
 
-    static int s_samplingFrame = 10;
+    //static int s_samplingFrame = 10;
 
-    static int s_minBuffSizeInByte = 2 * s_samplingFreq / s_samplingFrame; // 16bit = 2 * 8bit(1byte)
+    static int s_minBuffSizeInByte = 2 * s_samplingFreq; // 16bit = 2 * 8bit(1byte)
 
-    public static int s_recTime = 5; // [sec]
+    public static int s_recTime = 10; // [sec]
 
-    static int s_sharedBufferSize = s_minBuffSizeInByte * s_recTime * s_samplingFrame;
+    static int s_sharedBufferSize = s_minBuffSizeInByte * s_recTime;
 
     double _delay = 0;
 

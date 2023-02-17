@@ -1,4 +1,5 @@
 ﻿using MauiVoiceParrotingApp.Services;
+using System.Globalization;
 
 namespace MauiVoiceParrotingApp;
 
@@ -8,11 +9,11 @@ public partial class MainPage : ContentPage
     public bool IsAppBusy
     {
         get { return _isAppBusy; }
-        set 
-        { 
+        set
+        {
             _isAppBusy = value;
 
-            if(value) DisableUIs();
+            if (value) DisableUIs();
             else EnableUIs();
         }
     }
@@ -29,9 +30,13 @@ public partial class MainPage : ContentPage
     {
         InitializeComponent();
 
+
+
         //MyDictionary.TryGetValue("BusyColor", out object value);
         TrySetValue<Color>("BusyColor", out _busyColor);
         TrySetValue<Color>("ReadyColor", out _readyColor);
+
+
 
     }
 
@@ -99,34 +104,59 @@ public partial class MainPage : ContentPage
 
     async private void RunProgressBar(double timeInSec)
     {
-        MyProgress.Progress = 0;
+        //MyProgress.Progress = 0;
         uint milli = (uint)(timeInSec * 1000);
-        MyProgress.ProgressTo(1, milli, Easing.Linear);
+        //MyProgress.ProgressTo(1, milli, Easing.Linear);
     }
 
     void DisableUIs()
     {
-        RecordButton.IsEnabled = false;
-        PlayButton.IsEnabled = false;
+        //RecordButton.IsEnabled = false;
+        //PlayButton.IsEnabled = false;
         StartButton.IsEnabled = false;
 
         //BusyIndicator.IsVisible = true;
         //BusyIndicator.BackgroundColor = Colors.Red;
-        BusyIndicator.BackgroundColor = _busyColor;
+        //BusyIndicator.BackgroundColor = _busyColor;
 
         DelayTimeSlider.IsEnabled = false;
     }
 
     void EnableUIs()
     {
-        RecordButton.IsEnabled = true;
-        PlayButton.IsEnabled = true;
+        //RecordButton.IsEnabled = true;
+        //PlayButton.IsEnabled = true;
         StartButton.IsEnabled = true;
 
         //BusyIndicator.IsVisible = false;
         //BusyIndicator.BackgroundColor = Colors.LightGreen;
-        BusyIndicator.BackgroundColor = _readyColor;
+        //BusyIndicator.BackgroundColor = _readyColor;
 
         DelayTimeSlider.IsEnabled = true;
     }
 }
+    // converter
+    public class BusyStateToIndicatorColorConverter : IValueConverter
+    {
+
+        public Color BusyColor { get; set; }
+        public Color ReadyColor { get; set; }
+
+        //public BusyStateToIndicatorColorConverter(Color busyColor, Color readyColor)
+        //{
+        //    _busyColor = busyColor;
+        //    _readyColor = readyColor;
+        //}
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var isBusy = (bool)value;
+
+            return isBusy ? BusyColor : ReadyColor;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
