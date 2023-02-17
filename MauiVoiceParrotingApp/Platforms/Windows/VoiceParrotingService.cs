@@ -126,6 +126,7 @@ public partial class VoiceParrotingService
 
     public async partial Task TrackerStart()
     {
+        _playLocation = 0;
 
         _player.Play();
 
@@ -139,7 +140,7 @@ public partial class VoiceParrotingService
 
             _playLocation =  (int)(s_sharedBufferSize * ratio);
 
-            if(t.IsCompleted) break;
+            if(t.IsCompleted | _player.PlaybackState == PlaybackState.Stopped) break;
 
             await Task.Delay(100);
         }
@@ -151,6 +152,8 @@ public partial class VoiceParrotingService
     partial void RecorderFinalize()
     {
         _capture.StopRecording();
+
+        _recLocation = 0;
     }
 
     partial void TrackerFinalize()
@@ -158,6 +161,8 @@ public partial class VoiceParrotingService
         _player.Stop();
 
         _bufferedWaveProvider.ClearBuffer();
+
+        _playLocation = 0;
 
         // restore
         //if (_bufferedWaveProvider.BufferedDuration == TimeSpan.Zero)

@@ -97,7 +97,7 @@ public partial class VoiceParrotingService
             _recPosition = location * _miniBuffSizeInByte;
             
             if (location >= maxLocation) break;
-            if (timerTask.IsCompletedSuccessfully) break;
+            if (timerTask.IsCompletedSuccessfully | _audioRecord.RecordingState == RecordState.Stopped) break;
         }
 
         //_audioRecord.Stop();
@@ -131,7 +131,7 @@ public partial class VoiceParrotingService
             _playPosition = location * _miniBuffSizeInByte;
 
             if (location >= maxLocation) break;
-            if (timerTask.IsCompletedSuccessfully) break;
+            if (timerTask.IsCompletedSuccessfully | _audioTrack.PlayState == PlayState.Stopped) break;
         }
 
         //_audioTrack.Stop();
@@ -141,10 +141,12 @@ public partial class VoiceParrotingService
     partial void RecorderFinalize()
     {
         _audioRecord.Stop();
+        _recPosition = 0;
     }
     partial void TrackerFinalize()
     {
         _audioTrack.Stop();
+        _playPosition = 0;
     }
 
 
