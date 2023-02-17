@@ -74,7 +74,7 @@ public partial class VoiceParrotingService
 
         _audioRecord.StartRecording();
 
-        var timerTask =  Task.Delay(s_recTime * 1000);
+        var timerTask = Task.Delay(s_recTime * 1000);
 
         int location = 0;
         _recPosition = 0;
@@ -88,14 +88,14 @@ public partial class VoiceParrotingService
 
             int result = await _audioRecord.ReadAsync(buffer, 0, _miniBuffSizeInByte);
 
-            lock(_sharedBufferLock)
+            lock (_sharedBufferLock)
             {
                 Buffer.BlockCopy(buffer, 0, _sharedBuffer, location * _miniBuffSizeInByte, _miniBuffSizeInByte);
             }
             location++;
 
             _recPosition = location * _miniBuffSizeInByte;
-            
+
             if (location >= maxLocation) break;
             if (timerTask.IsCompletedSuccessfully | _audioRecord.RecordingState == RecordState.Stopped) break;
         }
@@ -119,7 +119,7 @@ public partial class VoiceParrotingService
 
         while (true)
         {
-            lock(_sharedBufferLock)
+            lock (_sharedBufferLock)
             {
                 Buffer.BlockCopy(_sharedBuffer, location * _miniBuffSizeInByte, buffer, 0, _miniBuffSizeInByte);
             }

@@ -1,9 +1,6 @@
-﻿using System.ComponentModel;
-using System.Diagnostics;
-using Microsoft.Maui.Devices.Sensors;
-using NAudio.CoreAudioApi;
+﻿using NAudio.CoreAudioApi;
 using NAudio.Wave;
-using Windows.Services.Maps;
+using System.Diagnostics;
 
 namespace MauiVoiceParrotingApp.Services;
 
@@ -57,7 +54,7 @@ public partial class VoiceParrotingService
         _capture.WaveFormat = new WaveFormat(s_samplingFreq, 1);
     }
 
-    
+
 
 
     private void _captureDevice_DataAvailable(object sender, WaveInEventArgs e)
@@ -72,7 +69,7 @@ public partial class VoiceParrotingService
             //Debug.WriteLineIf(bytesRecorded != s_minBuffSizeInByte, "incomplete buffer size of recode");
 
             int bytesCopy = bytesRecorded;
-            if (_recLocation + bytesRecorded > s_sharedBufferSize) 
+            if (_recLocation + bytesRecorded > s_sharedBufferSize)
                 bytesCopy = s_sharedBufferSize - _recLocation;
 
             Buffer.BlockCopy(buffer, 0, _sharedBuffer, _recLocation, bytesCopy);
@@ -132,21 +129,21 @@ public partial class VoiceParrotingService
 
         Task t = Task.Delay(s_recTime * 1000);
 
-        Stopwatch stopwatch= Stopwatch.StartNew();
+        Stopwatch stopwatch = Stopwatch.StartNew();
 
         while (true)
         {
             double ratio = (double)stopwatch.Elapsed.TotalSeconds / s_recTime;
 
-            _playLocation =  (int)(s_sharedBufferSize * ratio);
+            _playLocation = (int)(s_sharedBufferSize * ratio);
 
-            if(t.IsCompleted | _player.PlaybackState == PlaybackState.Stopped) break;
+            if (t.IsCompleted | _player.PlaybackState == PlaybackState.Stopped) break;
 
             await Task.Delay(100);
         }
 
         stopwatch.Stop();
-        
+
     }
 
     partial void RecorderFinalize()

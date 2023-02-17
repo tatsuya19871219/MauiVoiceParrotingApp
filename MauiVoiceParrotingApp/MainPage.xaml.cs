@@ -1,6 +1,5 @@
 ﻿using MauiVoiceParrotingApp.Services;
 using MauiVoiceParrotingApp.ViewModels;
-using System.Globalization;
 
 namespace MauiVoiceParrotingApp;
 
@@ -33,7 +32,7 @@ public partial class MainPage : ContentPage
         InitializeComponent();
 
         //MyDictionary.TryGetValue("BusyColor", out object value);
-        TrySetValue<Color>("BusyColor", out _busyColor); 
+        TrySetValue<Color>("BusyColor", out _busyColor);
         TrySetValue<Color>("ReadyColor", out _readyColor);
 
         var vm = new VoiceParrotingServiceStateViewModel(_service);
@@ -50,8 +49,8 @@ public partial class MainPage : ContentPage
         PlayerPicker.SelectedIndexChanged += (s, e) =>
             _service.ChangePlayerDevice(PlayerPicker.SelectedIndex);
 
-        RecorderPicker.SelectedIndex = RecorderPicker.ItemsSource.Count-1;
-        PlayerPicker.SelectedIndex = PlayerPicker.ItemsSource.Count-1;
+        RecorderPicker.SelectedIndex = RecorderPicker.ItemsSource.Count - 1;
+        PlayerPicker.SelectedIndex = PlayerPicker.ItemsSource.Count - 1;
 #endif
 
     }

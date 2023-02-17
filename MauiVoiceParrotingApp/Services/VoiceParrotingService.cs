@@ -20,7 +20,7 @@ public partial class VoiceParrotingService
     public bool IsRecorderRunning { get; private set; } = false;
     public bool IsTrackerRunning { get; private set; } = false;
 
-    public VoiceParrotingService(double delay = 1) 
+    public VoiceParrotingService(double delay = 1)
     {
         SetDelayTime(delay);
 
@@ -43,7 +43,7 @@ public partial class VoiceParrotingService
 
         await Task.Delay(delayInMilli);
 
-        IsTrackerRunning =true;
+        IsTrackerRunning = true;
         await TrackerStart();
 
         Break();

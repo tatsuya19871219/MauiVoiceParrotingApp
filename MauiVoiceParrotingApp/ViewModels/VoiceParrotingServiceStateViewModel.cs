@@ -31,7 +31,7 @@ public partial class VoiceParrotingServiceStateViewModel : ObservableObject
 
     async void RunStateTracker()
     {
-        while(true)
+        while (true)
         {
             RecPosition = _service.GetRecorderProgress();
             PlayPosition = _service.GetTrackerProgress();
