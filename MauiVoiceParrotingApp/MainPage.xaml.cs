@@ -29,6 +29,8 @@ public partial class MainPage : ContentPage
 
     public MainPage()
     {
+        QuitAppIfMicPermissionIsNotGranted();        
+
         InitializeComponent();
 
         //MyDictionary.TryGetValue("BusyColor", out object value);
@@ -62,6 +64,39 @@ public partial class MainPage : ContentPage
         state = (TypeOfValue)value;
 
         return result;
+    }
+
+
+    async private void QuitAppIfMicPermissionIsNotGranted()
+    {
+        bool passed = await CheckAndRequestPermission();
+
+        if (passed) return;
+
+        await DisplayAlert("Notification", "App will be quited due to the permission request of microphone is failed.", "OK");
+
+        App.Current.Quit();
+    }
+
+    async private Task<bool> CheckAndRequestPermission()
+    {
+        // Check permission (Mic)
+        PermissionStatus status = await Permissions.CheckStatusAsync<Permissions.Microphone>();
+
+        if (status == PermissionStatus.Granted)
+            return true;
+
+        //if (Permissions.ShouldShowRationale<Permissions.Microphone>())
+        //{
+        //    //
+        //}
+
+        status = await Permissions.RequestAsync<Permissions.Microphone>();
+
+        if (status == PermissionStatus.Granted)
+            return true;
+
+        return false;
     }
 
     async private void StartButton_Clicked(object sender, EventArgs e)
