@@ -41,6 +41,8 @@ public partial class VoiceParrotingService
 
         //_audioRecord.SetRecordPositionUpdateListener(new MyRecorderUpdatePositionListener(ref _sharedBuffer));
 
+        //bool isStateInitialized = _audioRecord.State == State.Initialized;
+
     }
 
     partial void PrepareAudioTracker()

@@ -1,0 +1,46 @@
+@startuml VoiceParroting
+
+class VoiceParrotingService
+{
+- recorder : VoiceRecorder
+- player : VoicePlayer
++ IsRunning : bool
++ IsRecorderRunning : bool
++ IsPlayerRunnning : bool
++ RecorderProgress : double
++ PlayerProgress : double
++ recTime : int
+- sharedBufferSize : int
+' - delay : double
++ Delay : double
++ VoiceParrotingService()
++ TrySetDelay(delay : double) : bool
++ TryStart() : bool
++ TryBreak() : bool
+}
+
+VoiceParrotingService --> VoiceRecorder
+VoiceParrotingService --> VoicePlayer
+class VoiceRecorder
+{
++ IsRunning : bool
+- sharedBuffer :
++ VoiceRecorder()
++ BindSharedBuffer(sharedBuffer : ) : void
++ Start() : void
++ Finalize() : void
++ GetProgress() : double
+}
+
+class VoicePlayer
+{
++ IsRunning : bool
+- sharedBuffer :
++ VoicePlayer()
++ BindSharedBuffer(sharedBuffer : ) : void
++ Start() : void
++ Finalize() : void
++ GetProgress() : double
+}
+
+@enduml
