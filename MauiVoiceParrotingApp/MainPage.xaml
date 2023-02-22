@@ -10,12 +10,16 @@
         </Style>
 
         <ResourceDictionary x:Name="MyDictionary">
-            <Color x:Key="BusyColor">Red</Color>
+            <Color x:Key="RecorderBusyColor">Red</Color>
+            <Color x:Key="PlayerBusyColor">Green</Color>
             <Color x:Key="ReadyColor">Gray</Color>
         </ResourceDictionary>
 
-        <converter:BusyStateToIndicatorColorConverter x:Key="stateToColor" 
-                                                      BusyColor="{StaticResource BusyColor}"
+        <converter:BusyStateToIndicatorColorConverter x:Key="recorderStateToColor" 
+                                                      BusyColor="{StaticResource RecorderBusyColor}"
+                                                      ReadyColor="{StaticResource ReadyColor}"/>
+        <converter:BusyStateToIndicatorColorConverter x:Key="playerStateToColor" 
+                                                      BusyColor="{StaticResource PlayerBusyColor}"
                                                       ReadyColor="{StaticResource ReadyColor}"/>
     </ContentPage.Resources>
     
@@ -59,23 +63,23 @@
                       RowSpacing="10" ColumnSpacing="20">
 
             <Label Text="REC" TextColor="{Binding IsRecBusy, 
-                                                    Converter={StaticResource stateToColor}}"
+                                                    Converter={StaticResource recorderStateToColor}}"
                    VerticalTextAlignment="Center"
                    Grid.Column="0" Grid.Row="0"/>
 
             <ProgressBar x:Name="MyRecProgress" WidthRequest="200" HeightRequest="20"
-                         ProgressColor="Red"
+                         ProgressColor="{StaticResource RecorderBusyColor}"
                          Progress="{Binding RecPosition}"
                          Grid.Column="1" Grid.Row="0"/>
 
 
             <Label Text="PLAY" TextColor="{Binding IsPlayBusy, 
-                                                    Converter={StaticResource stateToColor}}"
+                                                    Converter={StaticResource playerStateToColor}}"
                    VerticalTextAlignment="Center"
                    Grid.Column="0" Grid.Row="1"/>
 
             <ProgressBar x:Name="MyPlayProgress" WidthRequest="200" HeightRequest="20"
-                         ProgressColor="Green"
+                         ProgressColor="{StaticResource PlayerBusyColor}"
                          Progress="{Binding PlayPosition}"
                          Grid.Column="1" Grid.Row="1"/>
 

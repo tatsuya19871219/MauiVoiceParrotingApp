@@ -51,20 +51,60 @@ public partial class MainPage : ContentPage
         BindingContext = vm;
 
 #if WINDOWS
+
+        //vm.UpdateDeviceList();
         RecorderPicker.ItemsSource = _service.RecorderList;
         PlayerPicker.ItemsSource = _service.PlayerList;
 
-        RecorderPicker.SelectedIndexChanged += (s, e) =>
-            _service.ChangeRecorderDevice(RecorderPicker.SelectedIndex);
+        RecorderPicker.SelectedIndexChanged += RecorderSelectedIndexChanged;
+        PlayerPicker.SelectedIndexChanged += PlayerSelectedIndexChanged;
 
-        PlayerPicker.SelectedIndexChanged += (s, e) =>
-            _service.ChangePlayerDevice(PlayerPicker.SelectedIndex);
-
-        RecorderPicker.SelectedIndex = RecorderPicker.ItemsSource.Count - 1;
-        PlayerPicker.SelectedIndex = PlayerPicker.ItemsSource.Count - 1;
+        //RecorderPicker.SelectedIndex = 0;
+        //PlayerPicker.SelectedIndex = 0;
+        RecorderPicker.SelectedIndex = _service.RecorderList.Count - 1;
+        PlayerPicker.SelectedIndex = _service.PlayerList.Count - 1;
 #endif
 
     }
+
+#if WINDOWS
+    async void RecorderSelectedIndexChanged(object sender, EventArgs e)
+    {
+        Picker recorderPicker = (Picker)sender;
+
+        if (recorderPicker.SelectedIndex < 0) return;
+
+        if (recorderPicker.Items.Count != _service.RecorderList.Count)
+        {
+            // ItemsSource should be updated
+            await DisplayAlert("Notification", "Recorder list is updated. Please select again.", "OK");
+            recorderPicker.ItemsSource = _service.RecorderList;
+            return;
+        }
+
+        _service.ChangeRecorderDevice(recorderPicker.SelectedIndex);
+    }
+
+    async void PlayerSelectedIndexChanged(object sender, EventArgs e)
+    {
+        Picker playerPicker = (Picker)sender;
+
+        if (playerPicker.SelectedIndex < 0) return;
+
+        if (playerPicker.Items.Count != _service.PlayerList.Count)
+        {
+            // ItemsSource should be updated
+            await DisplayAlert("Notification", "Player list is updated. Please select again.", "OK");
+            playerPicker.ItemsSource = _service.PlayerList;
+            return;
+        }
+
+        _service.ChangePlayerDevice(playerPicker.SelectedIndex);
+    }
+
+
+#endif
+
 
     private bool TrySetValue<TypeOfValue>(string key, out TypeOfValue state)
     {

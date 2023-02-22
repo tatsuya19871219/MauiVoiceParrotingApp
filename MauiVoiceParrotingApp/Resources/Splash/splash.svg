@@ -24,8 +24,8 @@
    inkscape:deskcolor="#d1d1d1"
    showgrid="false"
    inkscape:zoom="1.2855077"
-   inkscape:cx="182.4182"
-   inkscape:cy="218.59068"
+   inkscape:cx="14.780153"
+   inkscape:cy="219.36858"
    inkscape:window-width="1920"
    inkscape:window-height="1009"
    inkscape:window-x="1912"
@@ -38,15 +38,15 @@
     
 <text
    xml:space="preserve"
-   style="font-size:48.0497px;clip-rule:evenodd;fill:#ff0000;fill-rule:evenodd;stroke-width:0.563078;stroke-linejoin:round;stroke-miterlimit:2"
+   style="font-size:48.0497px;clip-rule:evenodd;fill:#000000;fill-rule:evenodd;stroke-width:0.563078;stroke-linejoin:round;stroke-miterlimit:2;fill-opacity:1"
    x="28.00016"
-   y="331.53387"
+   y="339.53387"
    id="text228-5"><tspan
      sodipodi:role="line"
      id="tspan226-4"
      x="28.00016"
-     y="331.53387"
-     style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:48.0497px;font-family:Arial;-inkscape-font-specification:'Arial Bold';fill:#ffffff;stroke-width:0.563078">A .NET MAUI APP</tspan></text><ellipse
+     y="339.53387"
+     style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:48.0497px;font-family:Arial;-inkscape-font-specification:'Arial Bold';fill:#000000;stroke-width:0.563078;fill-opacity:1">A .NET MAUI APP</tspan></text><ellipse
    style="clip-rule:evenodd;fill:#6b9374;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:3.77953;stroke-linejoin:round;stroke-miterlimit:2;stroke-opacity:1"
    id="path1094"
    cx="298.29166"
