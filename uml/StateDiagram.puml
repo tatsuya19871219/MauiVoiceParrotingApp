@@ -1,0 +1,7 @@
+@startuml VoiceParrotingState
+[*] --> Available
+Available --> Running : Invoke()
+state Running {
+    
+}
+@enduml

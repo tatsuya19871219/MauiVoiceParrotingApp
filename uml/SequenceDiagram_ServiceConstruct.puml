@@ -1,0 +1,18 @@
+@startuml VoiceParrotingSequence_ServiceConstruct
+participant MainPage
+participant VoiceParrotingService as Service
+MainPage -> Service : Service Construct
+create VoiceRecorder
+Service -> VoiceRecorder : Init() 
+create VoicePlayer
+Service -> VoicePlayer : Init()
+
+Service -> VoiceRecorder : BindSharedBuffer()
+Service -> VoicePlayer : BindSharedBuffer()
+
+VoiceRecorder --> Service 
+VoicePlayer --> Service 
+
+Service --> MainPage 
+
+@enduml

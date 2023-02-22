@@ -3,66 +3,92 @@
 public partial class VoiceParrotingService
 {
     public bool IsRunning { get; private set; } = false;
+    public bool IsAvailable => _canStart.Value;
+    private bool? _canStart => _recorder.CanStart() & _player.CanStart();
+    private bool? _canFinalize => _recorder.CanFinalize() & _player.CanFinalize();
 
     public static int s_samplingFreq = 44100; // [1/sec]
 
     public static int s_recTime = 10; // [sec]
 
-    static int s_sharedBufferSize = 2 * s_samplingFreq * s_recTime; // 16bit = 2 * 8bit(1byte)
+    //static int s_sharedBufferSize = 2 * s_samplingFreq * s_recTime; // 16bit = 2 * 8bit(1byte)
 
-    double _delay = 0;
+    private VoiceDataSharedBuffer _sharedBuffer;
 
-    public double Delay => _delay;
 
-    public partial double GetRecorderProgress();
-    public partial double GetTrackerProgress();
+    public int DelayInMilli { get; private set; }
 
-    public bool IsRecorderRunning { get; private set; } = false;
-    public bool IsTrackerRunning { get; private set; } = false;
+    private VoiceRecorder _recorder;
+    private VoicePlayer _player;
+
+    public double RecorderProgress => _recorder.GetProgress();
+    public double PlayerProgress => _player.GetProgress();
+
+    public bool IsRecorderRunning => _recorder.IsRunning;
+    public bool IsPlayerRunning => _player.IsRunning;
 
     public VoiceParrotingService(double delay = 1)
     {
-        SetDelayTime(delay);
+        TrySetDelay(delay);
 
-        PrepareAudioRecorder();
-        PrepareAudioTracker();
+        _recorder = new VoiceRecorder(s_samplingFreq, s_recTime);
+        _player = new VoicePlayer(s_samplingFreq, s_recTime);
+
+        _recorder.Initialize();
+        _player.Initialize();
+
+        UpdateSharedBufferBinding();
     }
 
-    public void SetDelayTime(double delay) => _delay = delay;
-    partial void PrepareAudioRecorder();
-    partial void PrepareAudioTracker();
+    private void UpdateSharedBufferBinding()
+    {
+        _sharedBuffer = new VoiceDataSharedBuffer();
+        _recorder.BindSharedBuffer(_sharedBuffer);
+        _player.BindSharedBuffer(_sharedBuffer);
+    }
 
-    public async Task Invoke()
+
+    public bool TrySetDelay(double delay)
+    {
+        if (IsRunning) return false;
+
+        DelayInMilli = (int)(delay * 1000);
+        return true;
+    }
+
+    public bool TryStart()
+    {
+        // Check if recorder/player can start
+        if (!_canStart.Value) return false;
+
+        Invoke();
+        return true;
+    }
+
+    async void Invoke()
     {
         IsRunning = true;
 
-        int delayInMilli = (int)(_delay * 1000);
+        _recorder.Start();
 
-        IsRecorderRunning = true;
-        RecorderStart();
+        await Task.Delay(DelayInMilli);
 
-        await Task.Delay(delayInMilli);
+        await _player.Start();
 
-        IsTrackerRunning = true;
-        await TrackerStart();
+        //Break();
 
-        Break();
+        IsRunning = false;
     }
-
-    public partial Task RecorderStart();
-    public partial Task TrackerStart();
 
     public void Break()
     {
-        RecorderFinalize();
-        TrackerFinalize();
+        _recorder.End();
+        _player.End();
 
         IsRunning = false;
-        IsRecorderRunning = false;
-        IsTrackerRunning = false;
-    }
 
-    partial void RecorderFinalize();
-    partial void TrackerFinalize();
+        // Tell whether recorder/player could be finalized
+        //return _canFinalize.Value;
+    }
 
 }

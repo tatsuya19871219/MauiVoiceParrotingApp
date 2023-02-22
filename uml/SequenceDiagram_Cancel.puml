@@ -1,0 +1,25 @@
+@startuml VoiceParrotingSequence_Cancel
+participant MainPage
+participant CancelButton
+participant VoiceParrotingService as Service
+' participant VoiceRecorder
+' participant VoicePlayer
+
+activate VoiceRecorder
+activate VoicePlayer
+
+CancelButton -> Service : Break Request
+
+
+Service -> VoiceRecorder : End()
+deactivate VoiceRecorder
+
+Service -> VoicePlayer : End()
+deactivate VoicePlayer
+
+VoiceRecorder --> Service
+VoicePlayer --> Service
+
+Service --> MainPage 
+
+@enduml

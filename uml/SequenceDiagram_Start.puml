@@ -1,0 +1,33 @@
+@startuml VoiceParrotingSequence_Start
+!pragma teoz true
+participant MainPage
+participant StartButton
+participant VoiceParrotingService as Service
+{service_start} StartButton -> Service : Service Request
+
+{recorder_start} Service -> VoiceRecorder : Start()
+activate VoiceRecorder
+
+' Service -> Service : Wait for the delay timer ends
+
+{player_start} Service -> VoicePlayer : Start()
+activate VoicePlayer
+
+... ...
+
+{recorder_end} VoiceRecorder --> Service 
+deactivate VoiceRecorder
+
+{player_end} VoicePlayer --> Service
+deactivate VoicePlayer
+
+'Service -> VoiceRecorder : Finalize
+'Service -> VoicePlayer : Finalize
+
+{service_end} Service --> MainPage 
+
+{service_start} <-> {service_end} : Running
+{recorder_start} <-> {recorder_end} : Running
+{player_start} <-> {player_end} : Running
+
+@enduml

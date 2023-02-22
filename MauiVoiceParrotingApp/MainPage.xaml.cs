@@ -19,23 +19,32 @@ public partial class MainPage : ContentPage
     //}
 
     // No longer used
-    private Color _busyColor;
-    private Color _readyColor;
+    //private Color _busyColor;
+    //private Color _readyColor;
 
     //private double _recordingTime = 10;
-    private double _delay = 0;
+    //private double _delay = 0;
 
-    VoiceParrotingService _service = new();
+    VoiceParrotingService _service; // = new();
 
     public MainPage()
     {
-        QuitAppIfMicPermissionIsNotGranted();        
-
+        
         InitializeComponent();
 
         //MyDictionary.TryGetValue("BusyColor", out object value);
-        TrySetValue<Color>("BusyColor", out _busyColor);
-        TrySetValue<Color>("ReadyColor", out _readyColor);
+        //TrySetValue<Color>("BusyColor", out _busyColor);
+        //TrySetValue<Color>("ReadyColor", out _readyColor);
+
+        Initialize();
+
+    }
+
+    async void Initialize()
+    {
+        await QuitAppIfMicPermissionIsNotGranted();
+
+        _service = new VoiceParrotingService(DelayTimeSlider.Value);
 
         var vm = new VoiceParrotingServiceStateViewModel(_service);
 
@@ -67,7 +76,7 @@ public partial class MainPage : ContentPage
     }
 
 
-    async private void QuitAppIfMicPermissionIsNotGranted()
+    async private Task QuitAppIfMicPermissionIsNotGranted()
     {
         bool passed = await CheckAndRequestPermission();
 
@@ -106,10 +115,10 @@ public partial class MainPage : ContentPage
 
         // Start audio recorder & tracker
         //var _service = new VoiceParrotingService(DelayTimeSlider.Value);
-        _delay = DelayTimeSlider.Value;
-        _service.SetDelayTime(_delay);
+        var delay = DelayTimeSlider.Value;
+        _service.TrySetDelay(delay);
 
-        await _service.Invoke();
+        bool result = _service.TryStart();
     }
 
     private void CancelButton_Clicked(object sender, EventArgs e) => _service.Break();
@@ -123,7 +132,7 @@ public partial class MainPage : ContentPage
 
     //    IsAppBusy = true;
     //    //DisableUIs();
-    //    //await Task.Delay(100);
+    //    //await Task.DelayInMilli(100);
 
     //    await _service.RecorderStart();
     //    //EnableUIs();
@@ -138,7 +147,7 @@ public partial class MainPage : ContentPage
 
     //    IsAppBusy = true;
     //    //DisableUIs();
-    //    //await Task.Delay(100);
+    //    //await Task.DelayInMilli(100);
 
     //    await _service.TrackerStart();
     //    //EnableUIs();

@@ -33,11 +33,11 @@ public partial class VoiceParrotingServiceStateViewModel : ObservableObject
     {
         while (true)
         {
-            RecPosition = _service.GetRecorderProgress();
-            PlayPosition = _service.GetTrackerProgress();
+            RecPosition = _service.RecorderProgress;
+            PlayPosition = _service.PlayerProgress;
 
             IsRecBusy = _service.IsRecorderRunning;
-            IsPlayBusy = _service.IsTrackerRunning;
+            IsPlayBusy = _service.IsPlayerRunning;
 
             IsRunning = _service.IsRunning;
             IsAvailable = !_service.IsRunning;
