@@ -3,9 +3,9 @@ participant MainPage
 participant VoiceParrotingService as Service
 MainPage -> Service : Service Construct
 create VoiceRecorder
-Service -> VoiceRecorder : Init() 
+Service -> VoiceRecorder : Initialize() 
 create VoicePlayer
-Service -> VoicePlayer : Init()
+Service -> VoicePlayer : Initialize()
 
 Service -> VoiceRecorder : BindSharedBuffer()
 Service -> VoicePlayer : BindSharedBuffer()

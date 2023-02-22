@@ -9,14 +9,28 @@ class VoiceParrotingService
 + IsPlayerRunnning : bool
 + RecorderProgress : double
 + PlayerProgress : double
++ samplingFreq : int
 + recTime : int
-- sharedBufferSize : int
-' - delay : double
-+ Delay : double
-+ VoiceParrotingService()
++ DelayInMilli : int
+- sharedBuffer : VoiceDataSharedBuffer
++ VoiceParrotingService(delay : int)
+- UpdateSharedBufferBinding() : void
 + TrySetDelay(delay : double) : bool
 + TryStart() : bool
-+ TryBreak() : bool
+- Invoke() : void
++ Break() : bool
+}
+
+VoiceParrotingService --> VoiceDataSharedBuffer
+VoiceRecorder -up-> VoiceDataSharedBuffer
+VoicePlayer -up-> VoiceDataSharedBuffer
+class VoiceDataSharedBuffer 
+{
++ Lock : object <<readonly>>
+- dataType : Type
+- dataObject : object
++ Set<T>(dataObject : T) : void
++ Get<T>() : T
 }
 
 VoiceParrotingService --> VoiceRecorder
@@ -24,22 +38,32 @@ VoiceParrotingService --> VoicePlayer
 class VoiceRecorder
 {
 + IsRunning : bool
-- sharedBuffer :
-+ VoiceRecorder()
-+ BindSharedBuffer(sharedBuffer : ) : void
++ CanStart() : bool
++ CanFinalize() : bool
+- samplingFreq : int
+- recTime : int
+- sharedBufferSize : int
++ VoiceRecorder(samplingFreq : int, recTime : int)
++ Initialize() : void
++ BindSharedBuffer(sharedBuffer : VoiceDataSharedBuffer) : void
 + Start() : void
-+ Finalize() : void
++ End() : void
 + GetProgress() : double
 }
 
 class VoicePlayer
 {
 + IsRunning : bool
-- sharedBuffer :
-+ VoicePlayer()
-+ BindSharedBuffer(sharedBuffer : ) : void
++ CanStart() : bool
++ CanFinalize() : bool
+- samplingFreq : int
+- recTime : int
+- sharedBufferSize : int
++ VoicePlayer(samplingFreq : int, recTime : int)
++ Initialize() : void
++ BindSharedBuffer(sharedBuffer : VoiceDataSharedBuffer) : void
 + Start() : void
-+ Finalize() : void
++ End() : void
 + GetProgress() : double
 }
 
